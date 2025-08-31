@@ -73,6 +73,7 @@ interface EvolutionChain {
 
 export default function PokemonDetail({ pokemonId, onClose }: PokemonDetailProps) {
   const [pokemon, setPokemon] = useState<PokemonDetail | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
   const [evolutionChain, setEvolutionChain] = useState<EvolutionChain | null>(null);
   const [evolutionPokemonIds, setEvolutionPokemonIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,6 +91,8 @@ export default function PokemonDetail({ pokemonId, onClose }: PokemonDetailProps
     try {
       const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
       setPokemon(response.data);
+      const response_2 = await axios.get(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`);
+      setDescription(response_2.data.flavor_text_entries[0].flavor_text);
       
       // 진화 체인 정보 가져오기
       await fetchEvolutionChain();
@@ -190,7 +193,7 @@ export default function PokemonDetail({ pokemonId, onClose }: PokemonDetailProps
             {/* Stats (능력치) */}
             <div className="mb-6">
               <h3 className="text-xl font-bold mb-4 text-gray-400">Stats</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="text-sm text-gray-600">HP</div>
                   <div className="text-lg font-semibold">{getStatValue('hp')}</div>
@@ -207,14 +210,22 @@ export default function PokemonDetail({ pokemonId, onClose }: PokemonDetailProps
                   <div className="text-sm text-gray-600">Speed</div>
                   <div className="text-lg font-semibold">{getStatValue('speed')}</div>
                 </div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-600">Special Attack</div>
+                  <div className="text-lg font-semibold">{getStatValue('special-attack')}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-600">Special Defense</div>
+                  <div className="text-lg font-semibold">{getStatValue('special-defense')}</div>
+                </div>
               </div>
             </div>
 
             {/* Description */}
             <div className="mb-6">
               <h3 className="text-xl font-bold mb-4 text-gray-400">Description</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {pokemon.description || "포켓몬에 대한 설명이 없습니다."}
+              <p className="font-medium leading-relaxed">
+                {description || "포켓몬에 대한 설명이 없습니다."}
               </p>
             </div>
 
