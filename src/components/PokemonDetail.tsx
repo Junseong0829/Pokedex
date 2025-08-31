@@ -74,7 +74,6 @@ interface EvolutionChain {
 export default function PokemonDetail({ pokemonId, onClose }: PokemonDetailProps) {
   const [pokemon, setPokemon] = useState<PokemonDetail | null>(null);
   const [description, setDescription] = useState<string | null>(null);
-  const [evolutionChain, setEvolutionChain] = useState<EvolutionChain | null>(null);
   const [evolutionPokemonIds, setEvolutionPokemonIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -111,7 +110,6 @@ export default function PokemonDetail({ pokemonId, onClose }: PokemonDetailProps
       
       // 진화 체인 정보 가져오기
       const evolutionResponse = await axios.get<EvolutionChain>(evolutionChainUrl);
-      setEvolutionChain(evolutionResponse.data);
       
       // 진화 관련 포켓몬 ID들 추출
       const ids = extractEvolutionPokemonIds(evolutionResponse.data.chain);
