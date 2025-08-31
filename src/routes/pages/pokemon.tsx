@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import { createFileRoute} from "@tanstack/react-router";
 import { useInView } from 'react-intersection-observer';
 import PokemonDetail from "../../components/PokemonDetail";
+import PokemonCard from "../../components/PokemonCard";
 import SuspenseWrapper from "../../components/SuspenseWrapper";
 import { useInfinitePokemon } from "../../hooks/useInfinitePokemon";
 
@@ -27,28 +28,6 @@ function PokemonContent() {
         error
     } = useInfinitePokemon();
     
-    // Type별 BackGround 색상 정의
-    const typeColor = [
-        {type: "Grass", color: "bg-green-500"},
-        {type: "Poison", color: "bg-purple-500"},
-        {type: "Fire", color: "bg-red-500"},
-        {type: "Water", color: "bg-blue-500"},
-        {type: "Electric", color: "bg-yellow-500"},
-        {type: "Ice", color: "bg-cyan-500"},
-        {type: "Fighting", color: "bg-orange-500"},
-        {type: "Ground", color: "bg-yellow-600"},
-        {type: "Flying", color: "bg-indigo-400"},
-        {type: "Psychic", color: "bg-pink-500"},
-        {type: "Bug", color: "bg-lime-500"},
-        {type: "Rock", color: "bg-yellow-700"},
-        {type: "Ghost", color: "bg-purple-600"},
-        {type: "Dragon", color: "bg-indigo-600"},
-        {type: "Dark", color: "bg-gray-700"},
-        {type: "Steel", color: "bg-gray-500"},
-        {type: "Fairy", color: "bg-pink-300"},
-        {type: "Normal", color: "bg-gray-400"}
-    ];
-
     // 무한 스크롤 트리거
     useEffect(() => {
         if (inView && hasNextPage && !isFetchingNextPage) {
@@ -64,12 +43,12 @@ function PokemonContent() {
         setSelectedPokemonId(null);
     };
 
-    // 모든 포켓몬 데이터를 평면화
-    const allPokemon = data?.pages.flat() || [];
+    // 모든 포켓몬 데이터를 평면화 
+    const allPokemon = data?.pages?.flat() || [];
     
-    // 검색 필터링
+    // 검색 필터링 
     const filteredPokemon = allPokemon.filter(pokemon =>
-        pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
+        pokemon?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -122,49 +101,38 @@ function PokemonContent() {
                 ) : (
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {filteredPokemon.map((pokemon, index) => (
-                                <div 
-                                    key={`${pokemon.name}-${index}`}
-                                    className="bg-gray-100 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
-                                    onClick={() => handlePokemonClick(index + 1)}
-                                >
-                                    <img 
-                                        src={pokemon.image} 
-                                        alt={pokemon.name} 
-                                        className="w-full h-48 object-contain p-4 bg-gray-100 rounded-t-xl"
+                            {filteredPokemon
+                                .filter((pokemon): pokemon is NonNullable<typeof pokemon> => 
+                                    pokemon !== null && pokemon.id !== undefined && pokemon.name !== undefined
+                                )
+                                .map((pokemon) => (
+                                    <PokemonCard
+                                        key={`${pokemon.name}-${pokemon.id}`}
+                                        pokemonId={pokemon.id}
+                                        onClick={handlePokemonClick}
                                     />
-                                    <div className="p-4">
-                                        <h3 className="text-center font-bold text-xl mb-3 text-gray-800">
-                                            {pokemon.name}
-                                        </h3>
-                                        <div className="flex flex-wrap gap-2 justify-center">
-                                            {pokemon.type.map((type) => {
-                                                const found = typeColor.find((t) => t.type === type);
-                                                const bgColor = found ? found.color : "bg-gray-400";
-                                                return(
-                                                    <span 
-                                                        key={type} 
-                                                        className={`${bgColor} text-white px-3 py-1 rounded-md text-sm font-semibold`}
-                                                    >
-                                                        {type}
-                                                    </span>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            }
                         </div>
-
+                        
                         {/* 무한 스크롤 로딩 인디케이터 */}
-                        {isFetchingNextPage && (
+                        {isFetchingNextPage && hasNextPage && (
                             <div className="text-center py-8 text-gray-600">
                                 다음 페이지를 불러오는 중...
                             </div>
                         )}
 
-                        {/* 무한 스크롤 트리거 요소 */}
-                        <div ref={loadMoreRef} className="h-10" />
+                        {/* 모든 포켓몬 로드 완료 메시지 */}
+                        {!hasNextPage && allPokemon.length > 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                🔥 모든 포켓몬을 불러왔습니다! (총 <span className="text-blue-600 font-medium">{allPokemon.length}</span>개)
+                            </div>
+                        )}
+
+                        {/* 무한 스크롤 트리거 요소 (hasNextPage가 true일 때만) */}
+                        {hasNextPage && (
+                            <div ref={loadMoreRef} className="h-10" />
+                        )}
                     </>
                 )}
             </div>
